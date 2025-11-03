@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: antarex_db
+    environment:
+      POSTGRES_USER: ini_ai
+      POSTGRES_PASSWORD: Support@020616#
+      POSTGRES_DB: ai_central
+    volumes:
+      - ./database/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ini_ai -d ai_central"]
+      interval: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: antarex_redis
+    restart: always
+
+  backend:
+    build: ./backend
+    container_name: antarex_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ini_ai
+      POSTGRES_PASSWORD: Support%40020616%23
+      POSTGRES_DB: ai_central
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  parser:
+    build: ./parser
+    container_name: antarex_parser
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - backend
+
+  rule_engine:
+    build: ./rule_engine
+    container_name: antarex_rule_engine
+    ports:
+      - "5001:5001"
+    depends_on:
+      - parser
+
+  workflow:
+    build: ./workflow
+    container_name: antarex_workflow
+    ports:
+      - "5002:5002"
+    depends_on:
+      - rule_engine
