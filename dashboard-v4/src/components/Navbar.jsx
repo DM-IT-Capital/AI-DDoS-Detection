@@ -63,13 +63,6 @@ export default function Navbar({ onChangePasswordClick }) {
         )}
 
         <button
-          onClick={onChangePasswordClick}
-          className="flex items-center gap-2 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
-        >
-          <Lock size={16} /> Change Password
-        </button>
-
-        <button
           onClick={toggleTheme}
           className="flex items-center gap-2 bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-600 transition"
         >

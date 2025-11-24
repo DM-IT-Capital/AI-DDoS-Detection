@@ -14,11 +14,15 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ini_ai -d ai_central"]
       interval: 5s
       retries: 5
+    networks:
+      - antarex_network
 
   redis:
     image: redis:7
     container_name: antarex_redis
     restart: always
+    networks:
+      - antarex_network
 
   backend:
     build: ./backend
@@ -28,9 +32,8 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_USER: ini_ai
-      POSTGRES_PASSWORD: Support%40020616%23
-      POSTGRES_DB: ai_central
+      - SECRET_KEY=supersecurekey123
+      - ALGORITHM=HS256
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
@@ -39,6 +42,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    networks:
+      - antarex_network
 
   parser:
     build: ./parser
@@ -49,14 +54,22 @@ services:
       - ./uploads:/app/uploads
     depends_on:
       - backend
+    networks:
+      - antarex_network
 
   rule_engine:
     build: ./rule_engine
     container_name: antarex_rule_engine
     ports:
       - "5001:5001"
+    env_file:
+      - .env
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - parser
+    networks:
+      - antarex_network
 
   workflow:
     build: ./workflow
@@ -65,3 +78,9 @@ services:
       - "5002:5002"
     depends_on:
       - rule_engine
+    networks:
+      - antarex_network
+
+networks:
+  antarex_network:
+    driver: bridge

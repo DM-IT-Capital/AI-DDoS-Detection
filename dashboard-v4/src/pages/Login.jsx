@@ -21,9 +21,8 @@ export default function Login() {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 
-      // ✅ Save both token + role
-      localStorage.setItem("token", res.data.access_token);
-      localStorage.setItem("role", res.data.role);
+      localStorage.setItem("access_token", res.data.access_token);
+      localStorage.setItem("role", res.data.role || "");
 
       toast.success("✅ Login successful!");
       navigate("/dashboard");
